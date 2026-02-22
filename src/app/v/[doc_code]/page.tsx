@@ -1,65 +1,63 @@
 /**
  * /v/[doc_code] — Public document verification page.
  *
- * Server component: checks document exists, renders the registration card
- * and the client-side VerifyFilePanel for hash comparison.
+ * Server component: queries the repository directly for fast, fresh data.
+ * Shows revocation banner if the document has been revoked.
  */
 
 import { notFound } from "next/navigation";
+import { getDocumentRepository } from "@/lib/factory";
 import VerifyFilePanel from "./VerifyFilePanel";
 
 interface Props {
     params: Promise<{ doc_code: string }>;
 }
 
-async function getDocument(docCode: string) {
-    const res = await fetch(`http://localhost:3000/api/documents/resolve/${docCode}`, {
-        method: "GET",
-        cache: "no-store",
-    });
-    return { status: res.status, ok: res.ok };
-}
-
 export default async function VerifyPage({ params }: Props) {
     const { doc_code } = await params;
-    const { status, ok } = await getDocument(doc_code);
 
-    if (status === 404) notFound();
+    // Query DB directly — faster than an HTTP self-call and gives us revoked status
+    const repo = getDocumentRepository();
+    const record = repo.getDocumentByCode(doc_code);
 
-    if (!ok) {
-        return (
-            <main style={s.page}>
-                <div style={s.card}>
-                    <span style={s.icon}>⚠️</span>
-                    <h1 style={s.title}>Storage Error</h1>
-                    <p style={s.meta}>
-                        A record was found for <code style={s.code}>{doc_code}</code>, but the file
-                        could not be retrieved. Please contact the document issuer.
-                    </p>
-                </div>
-            </main>
-        );
-    }
+    if (!record) notFound();
 
+    const isRevoked = record.revoked === 1;
     const pdfUrl = `/api/documents/resolve/${doc_code}`;
 
     return (
         <main style={s.page}>
             <div style={s.card}>
+
+                {/* ── Revocation banner ── */}
+                {isRevoked && (
+                    <div style={s.revokedBanner}>
+                        <span style={s.revokedIcon}>🚫</span>
+                        <div>
+                            <p style={s.revokedTitle}>THIS DOCUMENT HAS BEEN REVOKED</p>
+                            <p style={s.revokedSub}>
+                                This document is no longer considered valid. Contact the issuer for more information.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {/* ── Registration status ── */}
-                <span style={s.icon}>✅</span>
-                <h1 style={s.title}>Document Registered</h1>
+                <span style={s.icon}>{isRevoked ? "⚠️" : "✅"}</span>
+                <h1 style={s.title}>{isRevoked ? "Document Revoked" : "Document Registered"}</h1>
 
                 <p style={s.label}>Document Code</p>
                 <code style={s.code}>{doc_code}</code>
 
                 <div style={s.divider} />
 
-                <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={s.link}>
+                <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={isRevoked ? s.linkRevoked : s.link}>
                     Open PDF ↗
                 </a>
                 <p style={s.hint}>
-                    The PDF opens inline in your browser. The QR code embedded in it links back to this page.
+                    {isRevoked
+                        ? "You can still view the PDF, but this document is no longer certified."
+                        : "The PDF opens inline in your browser. The QR code embedded in it links back to this page."}
                 </p>
 
                 {/* ── File verification panel (client component) ── */}
@@ -69,7 +67,6 @@ export default async function VerifyPage({ params }: Props) {
     );
 }
 
-// ── Inline styles ─────────────────────────────────────────────────────────────
 const s: Record<string, React.CSSProperties> = {
     page: {
         minHeight: "100vh",
@@ -89,6 +86,20 @@ const s: Record<string, React.CSSProperties> = {
         textAlign: "center",
         boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
     },
+    revokedBanner: {
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "12px",
+        background: "#fff1f2",
+        border: "1.5px solid #fca5a5",
+        borderRadius: "8px",
+        padding: "14px 16px",
+        marginBottom: "20px",
+        textAlign: "left",
+    },
+    revokedIcon: { fontSize: "24px", flexShrink: 0, marginTop: "2px" },
+    revokedTitle: { fontWeight: 800, fontSize: "14px", color: "#991b1b", margin: "0 0 4px", letterSpacing: "0.03em" },
+    revokedSub: { fontSize: "12px", color: "#b91c1c", margin: 0, lineHeight: 1.5 },
     icon: { fontSize: "48px" },
     title: { fontSize: "22px", fontWeight: 700, margin: "16px 0 8px", color: "#111" },
     label: {
@@ -120,6 +131,15 @@ const s: Record<string, React.CSSProperties> = {
         fontWeight: 600,
         fontSize: "15px",
     },
+    linkRevoked: {
+        display: "inline-block",
+        padding: "12px 28px",
+        background: "#6b7280",
+        color: "#fff",
+        borderRadius: "8px",
+        textDecoration: "none",
+        fontWeight: 600,
+        fontSize: "15px",
+    },
     hint: { marginTop: "16px", fontSize: "13px", color: "#999", lineHeight: 1.5 },
-    meta: { fontSize: "14px", color: "#555", lineHeight: 1.6, marginTop: "12px" },
 };

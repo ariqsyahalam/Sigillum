@@ -2,6 +2,7 @@
 
 /**
  * Represents a full document record as stored in the database.
+ * `revoked` is stored as a SQLite INTEGER (0 = active, 1 = revoked).
  */
 export interface DocumentRecord {
   id: number;
@@ -9,9 +10,7 @@ export interface DocumentRecord {
   file_path: string;
   file_hash: string | null;
   uploaded_at: string;
+  revoked: number; // 0 = active, 1 = revoked
 }
 
-/**
- * Shape of the data needed to create a new document (no id, no auto fields).
- */
-export type NewDocumentRecord = Omit<DocumentRecord, "id">;
+export type NewDocumentRecord = Omit<DocumentRecord, "id" | "revoked">;
