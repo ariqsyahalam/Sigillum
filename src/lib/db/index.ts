@@ -15,7 +15,7 @@ const DB_PATH = path.join(DB_DIR, "app.db");
 
 // Ensure the /data directory exists
 if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
+  fs.mkdirSync(DB_DIR, { recursive: true });
 }
 
 // Open (or create) the database file
@@ -30,7 +30,7 @@ db.exec(`
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     doc_code    TEXT    UNIQUE NOT NULL,
     file_path   TEXT    NOT NULL,
-    file_hash   TEXT    NOT NULL,
+    file_hash   TEXT,
     uploaded_at TEXT    NOT NULL
   );
 `);

@@ -1,11 +1,17 @@
 // Shared TypeScript types for the documents domain
 
-export interface Document {
+/**
+ * Represents a full document record as stored in the database.
+ */
+export interface DocumentRecord {
   id: number;
   doc_code: string;
   file_path: string;
-  file_hash: string;
+  file_hash: string | null;
   uploaded_at: string;
 }
 
-export type NewDocument = Omit<Document, "id">;
+/**
+ * Shape of the data needed to create a new document (no id, no auto fields).
+ */
+export type NewDocumentRecord = Omit<DocumentRecord, "id">;
