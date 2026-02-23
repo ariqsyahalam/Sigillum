@@ -16,7 +16,7 @@
  * Pipeline (A → G):
  *   A  Read buffer
  *   B  Generate doc_code
- *   C  Build verification URL
+ *   C  Build verification URL (uses APP_BASE_URL env var)
  *   D  Embed QR onto every page
  *   E  Hash the final PDF
  *   F  Save to storage
@@ -34,8 +34,14 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const RATE_LIMIT = 10;               // max uploads per window
 const RATE_WINDOW = 60 * 1000;        // 1 minute in ms
 
+/** Shared security headers for all responses from this route */
+const secHeaders = {
+    "X-Content-Type-Options": "nosniff",
+    "Cache-Control": "no-store",
+};
+
 function err(message: string, status: number) {
-    return NextResponse.json({ success: false, error: message }, { status });
+    return NextResponse.json({ success: false, error: message }, { status, headers: secHeaders });
 }
 
 export async function POST(req: NextRequest) {
@@ -46,7 +52,7 @@ export async function POST(req: NextRequest) {
         const retryAfterSec = Math.ceil((rate.retryAfterMs ?? RATE_WINDOW) / 1000);
         return NextResponse.json(
             { success: false, error: `Rate limit exceeded. Try again in ${retryAfterSec}s.` },
-            { status: 429, headers: { "Retry-After": String(retryAfterSec) } }
+            { status: 429, headers: { "Retry-After": String(retryAfterSec), ...secHeaders } }
         );
     }
 
@@ -95,8 +101,9 @@ export async function POST(req: NextRequest) {
         // ── B: Generate unique document code ─────────────────────────────────
         const docCode = generateDocCode();
 
-        // ── C: Build verification URL ─────────────────────────────────────────
-        const verifyUrl = `http://localhost:3000/v/${docCode}`;
+        // ── C: Build verification URL — driven by APP_BASE_URL env var ────────
+        const baseUrl = (process.env.APP_BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+        const verifyUrl = `${baseUrl}/v/${docCode}`;
 
         // ── D: Embed QR onto every page ───────────────────────────────────────
         const finalBuffer = await embedQrIntoPdf(inputBuffer, verifyUrl);
@@ -123,17 +130,20 @@ export async function POST(req: NextRequest) {
             uploaded_at: new Date().toISOString(),
         });
 
+        // ── Log upload (server-side only) ─────────────────────────────────────
+        console.log(`[upload] doc_code=${docCode} at=${new Date().toISOString()}`);
+
         return NextResponse.json({
             success: true,
             doc_code: record.doc_code,
             verify_url: verifyUrl,
-            file_path: record.file_path,   // relative only — no absolute FS paths
+            // file_path is relative only — never expose absolute FS paths
+            file_path: record.file_path,
             file_hash: record.file_hash,
-        }, { status: 201 });
+        }, { status: 201, headers: secHeaders });
 
     } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error("[/api/documents/upload]", message);
-        return err(message, 500);
+        console.error("[/api/documents/upload] Unexpected error:", error instanceof Error ? error.stack : error);
+        return err("Internal server error.", 500);
     }
 }

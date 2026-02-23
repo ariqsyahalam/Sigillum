@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
-import type { Document } from "@/types/document";
+import type { DocumentRecord } from "@/types/document";
 
 /**
  * POST /api/test-db
@@ -27,7 +27,7 @@ export async function POST() {
     // Fetch the newly inserted row
     const inserted = db
         .prepare("SELECT * FROM documents WHERE id = ?")
-        .get(result.lastInsertRowid) as Document;
+        .get(result.lastInsertRowid) as DocumentRecord;
 
     return NextResponse.json({ success: true, document: inserted }, { status: 201 });
 }

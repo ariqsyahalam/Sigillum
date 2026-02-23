@@ -12,8 +12,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDocumentRepository } from "@/lib/factory";
 import { hashBuffer } from "@/lib/hash/sha256";
 
+const secHeaders = {
+    "X-Content-Type-Options": "nosniff",
+    "Cache-Control": "no-store",
+};
+
 function err(message: string, status: number) {
-    return NextResponse.json({ success: false, error: message }, { status });
+    return NextResponse.json({ success: false, error: message }, { status, headers: secHeaders });
 }
 
 export async function POST(req: NextRequest) {
@@ -39,7 +44,7 @@ export async function POST(req: NextRequest) {
         if (!record) {
             return NextResponse.json(
                 { success: false, error: "Document not registered.", doc_code: docCode },
-                { status: 404 }
+                { status: 404, headers: secHeaders }
             );
         }
 
@@ -61,11 +66,10 @@ export async function POST(req: NextRequest) {
             uploaded_hash: uploadedHash,
             stored_hash: record.file_hash,
             match,
-        });
+        }, { headers: secHeaders });
 
     } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error("[/api/documents/verify-file]", message);
-        return err(message, 500);
+        console.error("[/api/documents/verify-file] Unexpected error:", error instanceof Error ? error.stack : error);
+        return err("Internal server error.", 500);
     }
 }

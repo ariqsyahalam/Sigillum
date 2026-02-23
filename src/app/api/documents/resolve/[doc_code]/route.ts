@@ -18,41 +18,58 @@ interface Params {
     params: Promise<{ doc_code: string }>;
 }
 
+const secHeaders = {
+    "X-Content-Type-Options": "nosniff",
+    "Cache-Control": "no-store",
+};
+
+function jsonErr(message: string, status: number) {
+    return NextResponse.json({ error: message }, { status, headers: secHeaders });
+}
+
 export async function GET(_req: NextRequest, { params }: Params) {
-    // A — extract doc_code
-    const { doc_code } = await params;
+    try {
+        // A — extract doc_code
+        const { doc_code } = await params;
 
-    // B — look up the document record
-    const repo = getDocumentRepository();
-    const record = repo.getDocumentByCode(doc_code);
+        // B — look up the document record
+        const repo = getDocumentRepository();
+        const record = repo.getDocumentByCode(doc_code);
 
-    // C — not found
-    if (!record) {
-        return NextResponse.json({ error: "Document not found." }, { status: 404 });
+        // C — not found
+        if (!record) {
+            return jsonErr("Document not found.", 404);
+        }
+
+        // Log access (server-side only)
+        console.log(`[resolve] doc_code=${doc_code} at=${new Date().toISOString()}`);
+
+        // D — verify the file is actually on disk
+        const storage = getStorageService();
+        const exists = await storage.fileExists(record.file_path);
+
+        if (!exists) {
+            console.error(`[resolve] DB record found but file missing: ${record.file_path}`);
+            return jsonErr("Document record exists but file is missing from storage.", 500);
+        }
+
+        // E — read the file buffer
+        const buffer = await storage.readFile(record.file_path);
+
+        // F — return as inline PDF (no-store so each request is fresh)
+        return new NextResponse(new Uint8Array(buffer), {
+            status: 200,
+            headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `inline; filename="${doc_code}.pdf"`,
+                "Content-Length": buffer.length.toString(),
+                "X-Content-Type-Options": "nosniff",
+                "Cache-Control": "no-store",
+            },
+        });
+
+    } catch (error: unknown) {
+        console.error("[/api/documents/resolve] Unexpected error:", error instanceof Error ? error.stack : error);
+        return jsonErr("Internal server error.", 500);
     }
-
-    // D — verify the file is actually on disk
-    const storage = getStorageService();
-    const exists = await storage.fileExists(record.file_path);
-
-    if (!exists) {
-        console.error(`[resolve] DB record found but file missing: ${record.file_path}`);
-        return NextResponse.json(
-            { error: "Document record exists but file is missing from storage." },
-            { status: 500 }
-        );
-    }
-
-    // E — read the file buffer
-    const buffer = await storage.readFile(record.file_path);
-
-    // F — return as inline PDF
-    return new NextResponse(buffer, {
-        status: 200,
-        headers: {
-            "Content-Type": "application/pdf",
-            "Content-Disposition": `inline; filename="${doc_code}.pdf"`,
-            "Content-Length": buffer.length.toString(),
-        },
-    });
 }
