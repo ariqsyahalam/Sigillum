@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sigillum — Certify Documents Without Enterprise Pricing",
+  title: "Sigillum — Self-Hosted Document Certification with QR Verification",
   description:
-    "Register signed documents, embed verification QR codes, and prove file integrity with a simple, self-hostable workflow.",
+    "Sigillum is a lightweight document certification system that embeds QR verification into PDFs and stores cryptographic proof of file integrity. A practical alternative between unmanaged files and expensive enterprise signing platforms.",
 };
 
 // ── Data ──────────────────────────────────────────────────────────────────────
@@ -33,9 +33,9 @@ const steps = [
 
 const features = [
   { icon: "🔒", title: "Immutable Records", desc: "Documents are never overwritten. Every code maps to exactly one file forever." },
-  { icon: "📲", title: "QR on Every Page", desc: "Built-in QR code links back to the public verification page automatically." },
+  { icon: "📲", title: "QR on Every Page", desc: "Built-in QR code links back to the public verification page for document integrity verification." },
   { icon: "🔑", title: "SHA-256 Integrity", desc: "Hash of the stamped file is stored. Any modification is immediately detectable." },
-  { icon: "🏠", title: "Self-Host Friendly", desc: "Run on your own machine, VPS, or server. No external dependencies required." },
+  { icon: "🏠", title: "Self-Host Friendly", desc: "Run this self-hosted document certification system on your own machine, VPS, or server." },
   { icon: "🛡️", title: "Token-Gated Upload", desc: "Only authorised holders of the admin token can register new documents." },
   { icon: "🔓", title: "No Vendor Lock-in", desc: "Open codebase, SQLite storage, local filesystem. Your data stays yours." },
 ];
@@ -104,6 +104,51 @@ const pricing = [
   },
 ];
 
+// Comparison section data
+const comparison = [
+  {
+    title: "Plain Files",
+    highlight: false,
+    muted: true,
+    badge: null,
+    items: [
+      { text: "No integrity proof", check: false },
+      { text: "Can be modified silently", check: false },
+      { text: "No verification history", check: false },
+      { text: "No public authenticity link", check: false },
+    ],
+    note: "Suitable only for fully trusted parties.",
+  },
+  {
+    title: "Sigillum",
+    highlight: true,
+    muted: false,
+    badge: "Best for most teams",
+    items: [
+      { text: "QR verification embedded in every page", check: true },
+      { text: "Cryptographic file integrity proof", check: true },
+      { text: "Public verification page per document", check: true },
+      { text: "Self-hostable, low-cost, open source", check: true },
+      { text: "Simple workflow for individuals or teams", check: true },
+    ],
+    note: "Ideal when you've already signed manually and need proof of authenticity.",
+  },
+  {
+    title: "Enterprise Platforms",
+    highlight: false,
+    muted: false,
+    badge: null,
+    items: [
+      { text: "Legally certified e-signature workflows", check: true },
+      { text: "Compliance and audit trails", check: true },
+      { text: "Subscription pricing per seat", check: false },
+      { text: "Onboarding and vendor dependency", check: false },
+      { text: "Designed for regulated corporate use", check: false },
+    ],
+    note: "Best when legal e-signature compliance is a hard requirement.",
+  },
+];
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
@@ -113,46 +158,47 @@ export default function LandingPage() {
       <div style={s.root}>
 
         {/* ── Navbar ── */}
-        <nav style={s.nav}>
-          <span style={s.navLogo}>SIGILLUM</span>
-          <div style={s.navLinks}>
+        <nav style={s.nav} aria-label="Main navigation">
+          <span style={s.navLogo} aria-label="Sigillum home">SIGILLUM</span>
+          <div style={s.navLinks} className="dc-nav-links">
             <a href="#how" style={s.navLink}>How it Works</a>
+            <a href="#compare" style={s.navLink}>Compare</a>
             <a href="#pricing" style={s.navLink}>Pricing</a>
             <a href="#github" style={s.navLink}>GitHub</a>
-            <a href="/upload" style={s.navCta}>Open App →</a>
           </div>
         </nav>
 
         {/* ── Hero ── */}
-        <section style={s.hero}>
+        <section style={s.hero} aria-label="Hero">
           <div style={s.badge}>Open Source · Self-Hostable · No Subscription</div>
-          <h1 style={s.heroH1}>
+          <h1 style={s.heroH1} className="dc-hero-h1">
             Certify Your Documents.<br />
             <span style={s.heroAccent}>Without Enterprise Pricing.</span>
           </h1>
           <p style={s.heroSub}>
-            Sigillum lets you register signed documents, embed verification QR codes, and prove file
-            integrity — all with a simple, self-hostable workflow.
+            Sigillum embeds a QR verification code into every page of your PDF and records its
+            SHA-256 cryptographic fingerprint — giving you tamper-evident proof of authenticity
+            without a subscription, without vendor lock-in, and without a legal procurement process.
           </p>
           <div style={s.heroCtas}>
-            <a href="#github" style={s.btnPrimary}>View on GitHub</a>
-            <a href="/upload" style={s.btnSecondary}>Open App</a>
+            <a href="#github" style={s.btnPrimary} aria-label="View Sigillum source code on GitHub">View on GitHub</a>
+            <a href="#how" style={s.btnSecondary}>See How It Works</a>
           </div>
         </section>
 
         {/* ── Problem ── */}
-        <section style={s.section}>
+        <section style={s.section} aria-labelledby="problem-heading">
           <div style={s.sectionInner}>
             <p style={s.eyebrow}>The Problem</p>
-            <h2 style={s.h2}>Digital signatures shouldn&apos;t require enterprise contracts.</h2>
-            <div style={s.problemGrid}>
+            <h2 id="problem-heading" style={s.h2}>Document trust shouldn&apos;t require enterprise contracts.</h2>
+            <div style={s.problemGrid} className="dc-grid-3">
               {[
                 { icon: "💸", t: "Expensive by default", d: "Leading platforms charge per-seat or per-document fees that add up fast for small teams and freelancers." },
                 { icon: "🏗️", t: "Overkill complexity", d: "Most tools bundle e-signing workflows, compliance reports, and audit trails you simply don't need." },
-                { icon: "✅", t: "All you actually need", d: "Proof that a file existed, a timestamp, a verifiable record, and a QR anyone can scan." },
+                { icon: "✅", t: "All you actually need", d: "Proof that a file existed at a point in time, a verifiable record, and a QR anyone can scan to confirm integrity." },
               ].map((item) => (
                 <div key={item.t} style={s.problemCard}>
-                  <span style={s.problemIcon}>{item.icon}</span>
+                  <span style={s.problemIcon} aria-hidden="true">{item.icon}</span>
                   <h3 style={s.problemTitle}>{item.t}</h3>
                   <p style={s.problemDesc}>{item.d}</p>
                 </div>
@@ -162,14 +208,14 @@ export default function LandingPage() {
         </section>
 
         {/* ── How it Works ── */}
-        <section id="how" style={{ ...s.section, background: "#f8f9fb" }}>
+        <section id="how" style={{ ...s.section, background: "#f8f9fb" }} aria-labelledby="how-heading">
           <div style={s.sectionInner}>
             <p style={s.eyebrow}>How it Works</p>
-            <h2 style={s.h2}>A simple certification workflow.</h2>
-            <div style={s.stepsGrid}>
+            <h2 id="how-heading" style={s.h2}>A simple PDF QR verification workflow.</h2>
+            <div style={s.stepsGrid} className="dc-grid-4">
               {steps.map((step) => (
                 <div key={step.n} style={s.stepCard}>
-                  <div style={s.stepNum}>{step.n}</div>
+                  <div style={s.stepNum} aria-hidden="true">{step.n}</div>
                   <h3 style={s.stepTitle}>{step.title}</h3>
                   <p style={s.stepDesc}>{step.desc}</p>
                 </div>
@@ -179,14 +225,14 @@ export default function LandingPage() {
         </section>
 
         {/* ── Features ── */}
-        <section style={s.section}>
+        <section style={s.section} aria-labelledby="features-heading">
           <div style={s.sectionInner}>
             <p style={s.eyebrow}>Features</p>
-            <h2 style={s.h2}>Everything you need. Nothing you don&apos;t.</h2>
-            <div style={s.featGrid}>
+            <h2 id="features-heading" style={s.h2}>Everything you need. Nothing you don&apos;t.</h2>
+            <div style={s.featGrid} className="dc-grid-3">
               {features.map((f) => (
                 <div key={f.title} style={s.featCard}>
-                  <span style={s.featIcon}>{f.icon}</span>
+                  <span style={s.featIcon} aria-hidden="true">{f.icon}</span>
                   <h3 style={s.featTitle}>{f.title}</h3>
                   <p style={s.featDesc}>{f.desc}</p>
                 </div>
@@ -195,12 +241,67 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* ── Comparison ── */}
+        <section id="compare" style={{ ...s.section, background: "#f8f9fb" }} aria-labelledby="compare-heading">
+          <div style={s.sectionInner}>
+            <p style={s.eyebrow}>Choose the Right Level of Document Trust</p>
+            <h2 id="compare-heading" style={s.h2}>Where does Sigillum fit?</h2>
+            <div style={s.compareGrid} className="dc-grid-3">
+              {comparison.map((col) => (
+                <div
+                  key={col.title}
+                  style={{
+                    ...s.compareCard,
+                    ...(col.highlight ? s.compareCardHighlight : {}),
+                    ...(col.muted ? s.compareCardMuted : {}),
+                  }}
+                >
+                  {col.badge && <div style={s.compareBadge}>{col.badge}</div>}
+                  <h3 style={{ ...s.compareTitle, ...(col.highlight ? { color: "#fff" } : col.muted ? { color: "#aaa" } : {}) }}>
+                    {col.title}
+                  </h3>
+                  <ul style={s.compareList}>
+                    {col.items.map((item) => (
+                      <li
+                        key={item.text}
+                        style={{
+                          ...s.compareItem,
+                          ...(col.highlight ? { color: "rgba(255,255,255,0.9)" } : col.muted ? { color: "#999" } : {}),
+                        }}
+                      >
+                        <span
+                          style={{
+                            marginRight: 8,
+                            color: item.check
+                              ? (col.highlight ? "#a7f3d0" : "#10b981")
+                              : (col.muted ? "#ccc" : "#f87171"),
+                          }}
+                          aria-hidden="true"
+                        >
+                          {item.check ? "✓" : "✗"}
+                        </span>
+                        {item.text}
+                      </li>
+                    ))}
+                  </ul>
+                  <p style={{
+                    ...s.compareNote,
+                    ...(col.highlight ? { color: "rgba(255,255,255,0.65)" } : col.muted ? { color: "#bbb" } : {}),
+                  }}>
+                    {col.note}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ── Pricing ── */}
-        <section id="pricing" style={{ ...s.section, background: "#f8f9fb" }}>
+        <section id="pricing" style={{ ...s.section }} aria-labelledby="pricing-heading">
           <div style={s.sectionInner}>
             <p style={s.eyebrow}>Pricing</p>
-            <h2 style={s.h2}>Simple pricing.</h2>
-            <div style={s.pricingGrid}>
+            <h2 id="pricing-heading" style={s.h2}>Simple pricing.</h2>
+            <div style={s.pricingGrid} className="dc-grid-3">
               {pricing.map((plan) => (
                 <div
                   key={plan.label}
@@ -219,13 +320,13 @@ export default function LandingPage() {
                   <ul style={s.planList}>
                     {plan.items.map((item) => (
                       <li key={item} style={{ ...s.planItem, ...(plan.muted ? { color: "#bbb", textDecoration: "line-through" } : plan.accent ? { color: "rgba(255,255,255,0.9)" } : {}) }}>
-                        {!plan.muted && <span style={{ marginRight: 6, color: plan.accent ? "#a7f3d0" : "#10b981" }}>✓</span>}
+                        {!plan.muted && <span style={{ marginRight: 6, color: plan.accent ? "#a7f3d0" : "#10b981" }} aria-hidden="true">✓</span>}
                         {item}
                       </li>
                     ))}
                   </ul>
                   {plan.cta && (
-                    <a href={plan.ctaHref ?? "#"} style={plan.accent ? s.planBtnAccent : s.planBtn}>
+                    <a href={plan.ctaHref ?? "#"} style={plan.accent ? s.planBtnAccent : s.planBtn} aria-label={`${plan.cta} — ${plan.label} plan`}>
                       {plan.cta}
                     </a>
                   )}
@@ -236,11 +337,11 @@ export default function LandingPage() {
         </section>
 
         {/* ── Testimonials ── */}
-        <section style={s.section}>
+        <section style={{ ...s.section, background: "#f8f9fb" }} aria-labelledby="testimonials-heading">
           <div style={s.sectionInner}>
             <p style={s.eyebrow}>Who It&apos;s For</p>
-            <h2 style={s.h2}>Built for people who just need proof, not paperwork.</h2>
-            <div style={s.testimonialGrid}>
+            <h2 id="testimonials-heading" style={s.h2}>Built for people who just need proof, not paperwork.</h2>
+            <div style={s.testimonialGrid} className="dc-grid-3">
               {testimonials.map((t, i) => (
                 <div key={i} style={s.testimonialCard}>
                   <p style={s.testimonialQuote}>&ldquo;{t.quote}&rdquo;</p>
@@ -252,14 +353,14 @@ export default function LandingPage() {
         </section>
 
         {/* ── GitHub CTA ── */}
-        <section id="github" style={{ ...s.section, background: "#111", textAlign: "center" }}>
+        <section id="github" style={{ ...s.section, background: "#111", textAlign: "center" }} aria-labelledby="github-heading">
           <div style={s.sectionInner}>
-            <h2 style={{ ...s.h2, color: "#fff" }}>Open Source. Transparent. Yours to run.</h2>
+            <h2 id="github-heading" style={{ ...s.h2, color: "#fff" }}>Open Source. Transparent. Yours to run.</h2>
             <p style={{ ...s.heroSub, color: "rgba(255,255,255,0.6)", margin: "0 auto 36px", maxWidth: 540 }}>
               Sigillum is designed to be simple, auditable, and deployable on your own infrastructure.
               Read the source, fork it, or contribute.
             </p>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={s.btnGithub}>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={s.btnGithub} aria-label="View Sigillum source code on GitHub (opens in new tab)">
               View Source on GitHub →
             </a>
           </div>
@@ -270,14 +371,14 @@ export default function LandingPage() {
           <div style={s.footerInner}>
             <div>
               <span style={s.footerLogo}>SIGILLUM</span>
-              <p style={s.footerTagline}>Simple, verifiable document certification.</p>
+              <p style={s.footerTagline}>Self-hosted document certification with QR verification.</p>
             </div>
-            <div style={s.footerLinks}>
+            <nav style={s.footerLinks} aria-label="Footer navigation">
               <a href="#how" style={s.footerLink}>How it Works</a>
+              <a href="#compare" style={s.footerLink}>Compare</a>
               <a href="#pricing" style={s.footerLink}>Pricing</a>
               <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={s.footerLink}>GitHub</a>
-              <a href="/upload" style={s.footerLink}>Upload</a>
-            </div>
+            </nav>
           </div>
           <p style={s.footerCopy}>© 2026 Sigillum. Open source. MIT licensed.</p>
         </footer>
@@ -296,6 +397,7 @@ const globalCss = `
     .dc-hero-h1  { font-size: 36px !important; }
     .dc-grid-3   { grid-template-columns: 1fr !important; }
     .dc-grid-2   { grid-template-columns: 1fr !important; }
+    .dc-grid-4   { grid-template-columns: 1fr 1fr !important; }
   }
 `;
 
@@ -311,11 +413,12 @@ const s: Record<string, React.CSSProperties> = {
   navCta: { fontSize: "14px", fontWeight: 600, color: "#fff", background: "#111", padding: "8px 18px", borderRadius: "7px", textDecoration: "none" },
 
   // Hero
-  hero: { padding: "96px 48px 80px", textAlign: "center", maxWidth: "780px", margin: "0 auto" },
+  hero: { padding: "96px 48px 80px", textAlign: "center", maxWidth: "800px", margin: "0 auto" },
   badge: { display: "inline-block", fontSize: "12px", fontWeight: 600, color: "#0EA5E9", background: "#E0F2FE", padding: "4px 14px", borderRadius: "100px", letterSpacing: "0.04em", marginBottom: "24px" },
   heroH1: { fontSize: "54px", fontWeight: 800, color: "#111", lineHeight: 1.15, letterSpacing: "-0.03em", marginBottom: "20px" },
   heroAccent: { color: "#0EA5E9" },
-  heroSub: { fontSize: "18px", color: "#555", lineHeight: 1.7, marginBottom: "36px" },
+  heroSub: { fontSize: "18px", color: "#555", lineHeight: 1.7, marginBottom: "16px" },
+  heroIdeal: { fontSize: "14px", color: "#888", lineHeight: 1.7, marginBottom: "36px", maxWidth: 560, margin: "0 auto 36px", padding: "12px 20px", background: "#f8f9fb", borderRadius: "8px", border: "1px solid #ebebeb" },
   heroCtas: { display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" },
   btnPrimary: { padding: "14px 28px", background: "#111", color: "#fff", borderRadius: "8px", fontWeight: 600, fontSize: "15px", textDecoration: "none" },
   btnSecondary: { padding: "14px 28px", background: "transparent", color: "#111", borderRadius: "8px", fontWeight: 600, fontSize: "15px", textDecoration: "none", border: "1.5px solid #ddd" },
@@ -347,6 +450,17 @@ const s: Record<string, React.CSSProperties> = {
   featTitle: { fontWeight: 700, fontSize: "15px", color: "#111", marginBottom: "6px" },
   featDesc: { fontSize: "14px", color: "#666", lineHeight: 1.65 },
 
+  // Comparison
+  compareGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", alignItems: "start" },
+  compareCard: { background: "#fff", border: "1px solid #ebebeb", borderRadius: "14px", padding: "32px", position: "relative" },
+  compareCardHighlight: { background: "#0EA5E9", border: "1px solid #0EA5E9" },
+  compareCardMuted: { background: "#fafafa", opacity: 0.85 },
+  compareBadge: { position: "absolute", top: "-13px", left: "50%", transform: "translateX(-50%)", background: "#0369A1", color: "#fff", fontSize: "11px", fontWeight: 700, padding: "4px 14px", borderRadius: "100px", whiteSpace: "nowrap" as const },
+  compareTitle: { fontWeight: 800, fontSize: "18px", color: "#111", marginBottom: "20px" },
+  compareList: { listStyle: "none", marginBottom: "20px", display: "flex", flexDirection: "column" as const, gap: "10px" },
+  compareItem: { fontSize: "14px", color: "#444", display: "flex", alignItems: "flex-start" as const, lineHeight: 1.5 },
+  compareNote: { fontSize: "12px", color: "#999", fontStyle: "italic", lineHeight: 1.6, borderTop: "1px solid rgba(0,0,0,0.07)", paddingTop: "16px", marginTop: "4px" },
+
   // Pricing
   pricingGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", alignItems: "start" },
   pricingCard: { background: "#fff", border: "1px solid #ebebeb", borderRadius: "14px", padding: "32px", position: "relative" },
@@ -363,7 +477,7 @@ const s: Record<string, React.CSSProperties> = {
 
   // Testimonials
   testimonialGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px" },
-  testimonialCard: { padding: "28px", background: "#fafafa", border: "1px solid #f0f0f0", borderRadius: "12px" },
+  testimonialCard: { padding: "28px", background: "#fff", border: "1px solid #f0f0f0", borderRadius: "12px" },
   testimonialQuote: { fontSize: "15px", color: "#333", lineHeight: 1.7, marginBottom: "16px", fontStyle: "italic" },
   testimonialAuthor: { fontSize: "13px", color: "#888", fontWeight: 600 },
 
