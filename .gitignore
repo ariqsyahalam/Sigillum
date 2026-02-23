@@ -18,6 +18,7 @@
 # ── Environment variables — NEVER commit secrets ──────────────────────────────
 .env.local
 .env*.local
+.env
 
 # ── Local database — never commit the actual DB files ─────────────────────────
 /data/*.db
