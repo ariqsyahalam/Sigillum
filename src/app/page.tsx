@@ -360,7 +360,7 @@ export default function LandingPage() {
               Sigillum is designed to be simple, auditable, and deployable on your own infrastructure.
               Read the source, fork it, or contribute.
             </p>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={s.btnGithub} aria-label="View Sigillum source code on GitHub (opens in new tab)">
+            <a href="https://github.com/ariqsyahalam/Sigillum" target="_blank" rel="noopener noreferrer" style={s.btnGithub} aria-label="View Sigillum source code on GitHub (opens in new tab)">
               View Source on GitHub →
             </a>
           </div>
@@ -377,7 +377,7 @@ export default function LandingPage() {
               <a href="#how" style={s.footerLink}>How it Works</a>
               <a href="#compare" style={s.footerLink}>Compare</a>
               <a href="#pricing" style={s.footerLink}>Pricing</a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={s.footerLink}>GitHub</a>
+              <a href="https://github.com/ariqsyahalam/Sigillum" target="_blank" rel="noopener noreferrer" style={s.footerLink}>GitHub</a>
             </nav>
           </div>
           <p style={s.footerCopy}>© 2026 Sigillum. Open source. MIT licensed.</p>

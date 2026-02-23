@@ -24,7 +24,7 @@ When a PDF is uploaded, Sigillum stamps a unique verification QR code onto every
 ## Quick Start (Local)
 
 ```bash
-git clone https://github.com/your-username/sigillum.git
+git clone https://github.com/ariqsyahalam/Sigillum
 cd sigillum
 npm install
 ```
