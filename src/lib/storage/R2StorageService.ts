@@ -110,8 +110,10 @@ export class R2StorageService implements StorageService {
     }
 
     /**
-     * Generate a short-lived (60 s) pre-signed GET URL for direct browser download.
-     * Used by the resolve route in cloud mode to avoid streaming through the server.
+     * Generate a short-lived pre-signed GET URL for direct browser download.
+     * If R2_CUSTOM_DOMAIN is set (e.g. https://vault.sigillum.risya.id), the URL
+     * origin is rewritten to use that domain instead of the default R2 account domain.
+     * Cloudflare R2 validates presigned URLs by signing key — host replacement is safe.
      */
     async getSignedDownloadUrl(relativePath: string, expiresInSeconds = 60): Promise<string> {
         const client = getClient();
@@ -124,8 +126,22 @@ export class R2StorageService implements StorageService {
             ResponseContentDisposition: `inline; filename="${relativePath.split("/").pop()}"`,
         });
 
-        return getSignedUrl(client, command, { expiresIn: expiresInSeconds });
+        const signedUrl = await getSignedUrl(client, command, { expiresIn: expiresInSeconds });
+
+        // Rewrite to custom domain if configured.
+        // R2 path-style URL: https://<account>.r2.cloudflarestorage.com/<bucket>/<key>?sig
+        // → https://<custom-domain>/<key>?sig
+        const customDomain = process.env.R2_CUSTOM_DOMAIN?.replace(/\/$/, "");
+        if (customDomain) {
+            const parsed = new URL(signedUrl);
+            // Remove leading /<bucket> prefix from path since custom domain maps to the bucket root
+            const pathWithoutBucket = parsed.pathname.replace(`/${bucket}`, "");
+            return `${customDomain}${pathWithoutBucket}${parsed.search}`;
+        }
+
+        return signedUrl;
     }
+
 
     /**
      * Generate a short-lived presigned PUT URL so the browser can upload a file
