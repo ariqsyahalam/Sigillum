@@ -34,11 +34,11 @@ export async function POST(req: NextRequest) {
         if (!docCode) return err("Missing field: doc_code.", 400);
 
         const repo = getDocumentRepository();
-        const record = repo.getDocumentByCode(docCode);
+        const record = await repo.getDocumentByCode(docCode);
         if (!record) return err("Document not found.", 404);
         if (record.revoked) return err("Document is already revoked.", 409);
 
-        const updated = repo.revokeDocument(docCode);
+        const updated = await repo.revokeDocument(docCode);
         if (!updated) return err("Failed to revoke document.", 500);
 
         return NextResponse.json({ success: true, doc_code: docCode, revoked: true }, { headers: secHeaders });

@@ -16,7 +16,7 @@ export default async function VerifyPage({ params }: Props) {
     const { doc_code } = await params;
 
     const repo = getDocumentRepository();
-    const record = repo.getDocumentByCode(doc_code);
+    const record = await repo.getDocumentByCode(doc_code);
 
     if (!record) notFound();
 

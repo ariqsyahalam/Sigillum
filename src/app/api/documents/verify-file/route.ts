@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
         // ── Look up stored document ───────────────────────────────────────────
         const repo = getDocumentRepository();
-        const record = repo.getDocumentByCode(docCode.trim());
+        const record = await repo.getDocumentByCode(docCode.trim());
 
         if (!record) {
             return NextResponse.json(

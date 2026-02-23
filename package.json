@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.995.0",
+    "@aws-sdk/s3-request-presigner": "^3.995.0",
+    "@supabase/supabase-js": "^2.97.0",
     "better-sqlite3": "^12.6.2",
     "next": "16.1.6",
     "pdf-lib": "^1.17.1",

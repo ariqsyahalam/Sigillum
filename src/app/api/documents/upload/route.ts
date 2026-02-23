@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
 
         // ── G: Insert DB record ───────────────────────────────────────────────
         const repo = getDocumentRepository();
-        const record = repo.createDocument({
+        const record = await repo.createDocument({
             doc_code: docCode,
             file_path: relativePath,
             file_hash: fileHash,

@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
     try {
         const repo = getDocumentRepository();
-        const documents = repo.listDocuments();
+        const documents = await repo.listDocuments();
         return NextResponse.json({ success: true, documents }, { headers: secHeaders });
     } catch (error: unknown) {
         console.error("[/api/admin/documents] Unexpected error:", error instanceof Error ? error.stack : error);
