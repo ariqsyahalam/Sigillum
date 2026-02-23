@@ -1,14 +1,12 @@
 "use client";
 
 /**
- * /upload — Admin upload page.
- *
- * Lets the document owner upload a PDF via browser.
- * Sends the request to POST /api/documents/upload with the admin token.
- * Token is persisted in localStorage so it survives page refreshes.
+ * /upload — Upload Document page.
+ * Lets the admin upload a PDF via browser and view the registration result.
  */
 
 import { useState, useEffect, useRef } from "react";
+import AppShell, { btnStyle, token } from "@/components/layout/AppShell";
 
 interface UploadResult {
     doc_code: string;
@@ -20,206 +18,187 @@ interface UploadResult {
 const TOKEN_KEY = "docucert_admin_token";
 
 export default function UploadPage() {
-    const [token, setToken] = useState("");
+    const [tok, setTok] = useState("");
     const [file, setFile] = useState<File | null>(null);
     const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error">("idle");
     const [result, setResult] = useState<UploadResult | null>(null);
-    const [errorMsg, setError] = useState("");
+    const [errMsg, setErrMsg] = useState("");
     const fileRef = useRef<HTMLInputElement>(null);
 
-    // Load saved token from localStorage on mount
     useEffect(() => {
         const saved = localStorage.getItem(TOKEN_KEY);
-        if (saved) setToken(saved);
+        if (saved) setTok(saved);
     }, []);
 
-    // Persist token whenever it changes
-    const handleTokenChange = (value: string) => {
-        setToken(value);
-        localStorage.setItem(TOKEN_KEY, value);
+    const handleTokenChange = (v: string) => {
+        setTok(v);
+        localStorage.setItem(TOKEN_KEY, v);
     };
 
     const handleUpload = async () => {
-        if (!file) { setError("Please select a PDF file."); setStatus("error"); return; }
-        if (!token.trim()) { setError("Please enter the admin token."); setStatus("error"); return; }
+        if (!file) { setErrMsg("Select a PDF file first."); setStatus("error"); return; }
+        if (!tok.trim()) { setErrMsg("Enter the admin token first."); setStatus("error"); return; }
 
-        setStatus("uploading");
-        setResult(null);
-        setError("");
+        setStatus("uploading"); setResult(null); setErrMsg("");
 
-        const formData = new FormData();
-        formData.append("file", file);
+        const form = new FormData();
+        form.append("file", file);
 
         try {
             const res = await fetch("/api/documents/upload", {
                 method: "POST",
-                headers: { Authorization: `Bearer ${token.trim()}` },
-                body: formData,
+                headers: { Authorization: `Bearer ${tok.trim()}` },
+                body: form,
             });
-
             const json = await res.json();
 
             if (!res.ok || !json.success) {
-                setError(json.error ?? `HTTP ${res.status}`);
+                setErrMsg(json.error ?? `HTTP ${res.status}`);
                 setStatus("error");
                 return;
             }
 
             setResult(json);
             setStatus("done");
-            // Reset file input
             if (fileRef.current) fileRef.current.value = "";
             setFile(null);
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Network error.");
+            setErrMsg(e instanceof Error ? e.message : "Network error.");
             setStatus("error");
         }
     };
 
     return (
-        <main style={s.page}>
+        <AppShell title="Upload Document" description="Register a PDF to embed a verification QR code and record its cryptographic hash.">
             <div style={s.card}>
-                <h1 style={s.heading}>DocuCert — Upload</h1>
-                <p style={s.sub}>Upload a PDF to register it and embed a verification QR code.</p>
+                {/* File */}
+                <div style={s.field}>
+                    <label style={s.label}>PDF File</label>
+                    <input
+                        ref={fileRef}
+                        type="file"
+                        accept="application/pdf,.pdf"
+                        style={s.fileInput}
+                        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                    />
+                </div>
 
-                {/* File input */}
-                <label style={s.label}>PDF File</label>
-                <input
-                    ref={fileRef}
-                    type="file"
-                    accept="application/pdf,.pdf"
-                    style={s.fileInput}
-                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                />
+                {/* Token */}
+                <div style={s.field}>
+                    <label style={s.label}>Admin Token</label>
+                    <input
+                        type="password"
+                        placeholder="Bearer token"
+                        value={tok}
+                        onChange={(e) => handleTokenChange(e.target.value)}
+                        style={s.textInput}
+                        autoComplete="current-password"
+                    />
+                </div>
 
-                {/* Token input */}
-                <label style={s.label}>Admin Token</label>
-                <input
-                    type="password"
-                    placeholder="Bearer token"
-                    value={token}
-                    onChange={(e) => handleTokenChange(e.target.value)}
-                    style={s.textInput}
-                    autoComplete="current-password"
-                />
-
-                {/* Upload button */}
                 <button
                     onClick={handleUpload}
                     disabled={status === "uploading"}
-                    style={{ ...s.btn, opacity: status === "uploading" ? 0.6 : 1 }}
+                    style={{ ...btnStyle, width: "100%", opacity: status === "uploading" ? 0.65 : 1 }}
                 >
-                    {status === "uploading" ? "Uploading…" : "Upload PDF"}
+                    {status === "uploading" ? "Uploading…" : "Upload Document"}
                 </button>
 
-                {/* Status messages */}
                 {status === "error" && (
-                    <div style={s.errorBox}>
-                        <strong>Error:</strong> {errorMsg}
-                    </div>
+                    <div style={s.errorBox}><strong>Error:</strong> {errMsg}</div>
                 )}
 
                 {status === "done" && result && (
                     <div style={s.resultBox}>
-                        <p style={s.resultRow}><span style={s.resultKey}>Doc Code</span><code style={s.code}>{result.doc_code}</code></p>
-                        <p style={s.resultRow}><span style={s.resultKey}>Verify URL</span><code style={s.code}>{result.verify_url}</code></p>
-                        <p style={s.resultRow}><span style={s.resultKey}>SHA-256</span><code style={{ ...s.code, fontSize: "11px", wordBreak: "break-all" }}>{result.file_hash}</code></p>
-                        <a href={`/v/${result.doc_code}`} target="_blank" rel="noopener noreferrer" style={s.link}>
-                            Open verification page ↗
+                        <div style={s.resultRow}>
+                            <span style={s.resultKey}>Document Code</span>
+                            <code style={s.code}>{result.doc_code}</code>
+                        </div>
+                        <div style={s.resultRow}>
+                            <span style={s.resultKey}>Verification URL</span>
+                            <code style={s.code}>{result.verify_url}</code>
+                        </div>
+                        <div style={s.resultRow}>
+                            <span style={s.resultKey}>SHA-256</span>
+                            <code style={{ ...s.code, fontSize: "11px", wordBreak: "break-all" }}>{result.file_hash}</code>
+                        </div>
+                        <a href={`/v/${result.doc_code}`} target="_blank" rel="noopener noreferrer" style={s.resultLink}>
+                            Open verification page →
                         </a>
                     </div>
                 )}
             </div>
-        </main>
+        </AppShell>
     );
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
 const s: Record<string, React.CSSProperties> = {
-    page: {
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#f5f5f5",
-        fontFamily: "system-ui, sans-serif",
-        padding: "24px",
-    },
     card: {
         background: "#fff",
-        borderRadius: "12px",
-        padding: "36px 44px",
-        width: "100%",
-        maxWidth: "520px",
-        boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
+        border: `1px solid #e5e7eb`,
+        borderRadius: 10,
+        padding: "28px 32px",
         display: "flex",
         flexDirection: "column",
-        gap: "4px",
+        gap: "16px",
     },
-    heading: { fontSize: "22px", fontWeight: 700, margin: "0 0 4px", color: "#111" },
-    sub: { fontSize: "14px", color: "#777", margin: "0 0 20px" },
-    label: { fontSize: "12px", fontWeight: 600, color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "12px" },
-    fileInput: { marginTop: "6px", fontSize: "14px", cursor: "pointer" },
+    field: { display: "flex", flexDirection: "column", gap: "6px" },
+    label: {
+        fontSize: "12px",
+        fontWeight: 600,
+        color: token.colorMuted,
+        textTransform: "uppercase",
+        letterSpacing: "0.06em",
+    },
+    fileInput: { fontSize: "14px", cursor: "pointer", fontFamily: token.fontFamily },
     textInput: {
-        marginTop: "6px",
         padding: "9px 12px",
         fontSize: "14px",
-        border: "1px solid #ddd",
-        borderRadius: "6px",
+        border: "1px solid #e5e7eb",
+        borderRadius: 6,
         outline: "none",
         fontFamily: "monospace",
-    },
-    btn: {
-        marginTop: "20px",
-        padding: "12px",
-        background: "#111",
-        color: "#fff",
-        border: "none",
-        borderRadius: "8px",
-        fontSize: "15px",
-        fontWeight: 600,
-        cursor: "pointer",
+        color: "#111",
     },
     errorBox: {
-        marginTop: "16px",
         padding: "12px 16px",
-        background: "#fff0f0",
-        border: "1px solid #fcc",
-        borderRadius: "6px",
-        color: "#c00",
+        background: "#fef2f2",
+        border: "1px solid #fecaca",
+        borderRadius: 6,
+        color: "#b91c1c",
         fontSize: "14px",
     },
     resultBox: {
-        marginTop: "16px",
-        padding: "16px",
-        background: "#f0fff4",
-        border: "1px solid #6ee7b7",
-        borderRadius: "8px",
+        padding: "20px",
+        background: "#f0fdf4",
+        border: "1px solid #86efac",
+        borderRadius: 8,
         display: "flex",
         flexDirection: "column",
-        gap: "8px",
+        gap: "12px",
     },
-    resultRow: { margin: 0, display: "flex", flexDirection: "column", gap: "2px" },
-    resultKey: { fontSize: "11px", fontWeight: 600, color: "#555", textTransform: "uppercase", letterSpacing: "0.06em" },
+    resultRow: { display: "flex", flexDirection: "column", gap: "3px" },
+    resultKey: {
+        fontSize: "11px",
+        fontWeight: 600,
+        color: token.colorMuted,
+        textTransform: "uppercase",
+        letterSpacing: "0.06em",
+    },
     code: {
         fontFamily: "monospace",
         fontSize: "13px",
         background: "rgba(0,0,0,0.05)",
-        padding: "3px 7px",
-        borderRadius: "4px",
+        padding: "3px 8px",
+        borderRadius: 4,
         color: "#111",
         display: "inline-block",
     },
-    link: {
-        display: "inline-block",
-        marginTop: "8px",
-        padding: "9px 18px",
-        background: "#111",
-        color: "#fff",
-        borderRadius: "7px",
-        textDecoration: "none",
-        fontWeight: 600,
+    resultLink: {
         fontSize: "14px",
-        alignSelf: "flex-start",
+        fontWeight: 600,
+        color: "#059669",
+        textDecoration: "none",
+        marginTop: 4,
     },
 };

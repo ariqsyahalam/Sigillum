@@ -1,12 +1,11 @@
 /**
- * /v/[doc_code] — Public document verification page.
- *
- * Server component: queries the repository directly for fast, fresh data.
- * Shows revocation banner if the document has been revoked.
+ * /v/[doc_code] — Document Verification Page.
+ * Server component — queries the repository directly for up-to-date revoked status.
  */
 
 import { notFound } from "next/navigation";
 import { getDocumentRepository } from "@/lib/factory";
+import AppShell, { token } from "@/components/layout/AppShell";
 import VerifyFilePanel from "./VerifyFilePanel";
 
 interface Props {
@@ -16,7 +15,6 @@ interface Props {
 export default async function VerifyPage({ params }: Props) {
     const { doc_code } = await params;
 
-    // Query DB directly — faster than an HTTP self-call and gives us revoked status
     const repo = getDocumentRepository();
     const record = repo.getDocumentByCode(doc_code);
 
@@ -26,120 +24,147 @@ export default async function VerifyPage({ params }: Props) {
     const pdfUrl = `/api/documents/resolve/${doc_code}`;
 
     return (
-        <main style={s.page}>
-            <div style={s.card}>
-
-                {/* ── Revocation banner ── */}
-                {isRevoked && (
-                    <div style={s.revokedBanner}>
-                        <span style={s.revokedIcon}>🚫</span>
-                        <div>
-                            <p style={s.revokedTitle}>THIS DOCUMENT HAS BEEN REVOKED</p>
-                            <p style={s.revokedSub}>
-                                This document is no longer considered valid. Contact the issuer for more information.
-                            </p>
-                        </div>
+        <AppShell
+            title="Verification Result"
+            description={isRevoked
+                ? "This document has been revoked by the issuer."
+                : "This document is registered in the DocuCert system."}
+            hideNav
+        >
+            {/* ── Revocation warning ── */}
+            {isRevoked && (
+                <div style={s.revokedBanner}>
+                    <div style={s.revokedDot} />
+                    <div>
+                        <p style={s.revokedTitle}>This document has been revoked</p>
+                        <p style={s.revokedSub}>
+                            It is no longer considered valid. Contact the issuer for more information.
+                        </p>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* ── Registration status ── */}
-                <span style={s.icon}>{isRevoked ? "⚠️" : "✅"}</span>
-                <h1 style={s.title}>{isRevoked ? "Document Revoked" : "Document Registered"}</h1>
-
-                <p style={s.label}>Document Code</p>
-                <code style={s.code}>{doc_code}</code>
+            {/* ── Document card ── */}
+            <div style={s.card}>
+                {/* Status row */}
+                <div style={s.statusRow}>
+                    <span style={isRevoked ? s.statusDotRevoked : s.statusDotActive} />
+                    <span style={s.statusLabel}>
+                        {isRevoked ? "Revoked" : "Registered and Active"}
+                    </span>
+                </div>
 
                 <div style={s.divider} />
 
-                <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={isRevoked ? s.linkRevoked : s.link}>
-                    Open PDF ↗
-                </a>
-                <p style={s.hint}>
-                    {isRevoked
-                        ? "You can still view the PDF, but this document is no longer certified."
-                        : "The PDF opens inline in your browser. The QR code embedded in it links back to this page."}
-                </p>
+                {/* Doc code */}
+                <div style={s.infoRow}>
+                    <span style={s.infoKey}>Document Code</span>
+                    <code style={s.infoVal}>{doc_code}</code>
+                </div>
 
-                {/* ── File verification panel (client component) ── */}
-                <VerifyFilePanel docCode={doc_code} />
+                {/* Uploaded at */}
+                <div style={s.infoRow}>
+                    <span style={s.infoKey}>Registered</span>
+                    <span style={{ ...s.infoVal, fontFamily: token.fontFamily, fontSize: "13px" }}>
+                        {new Date(record.uploaded_at).toLocaleString()}
+                    </span>
+                </div>
+
+                <div style={s.divider} />
+
+                {/* PDF link */}
+                <a
+                    href={pdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={isRevoked ? s.pdfLinkMuted : s.pdfLink}
+                >
+                    Open Registered PDF →
+                </a>
+                {isRevoked && (
+                    <p style={s.pdfNote}>
+                        The file is still accessible but this document is no longer certified.
+                    </p>
+                )}
             </div>
-        </main>
+
+            {/* ── File integrity check ── */}
+            <VerifyFilePanel docCode={doc_code} />
+        </AppShell>
     );
 }
 
 const s: Record<string, React.CSSProperties> = {
-    page: {
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "system-ui, sans-serif",
-        background: "#f5f5f5",
-        padding: "24px",
-    },
-    card: {
-        background: "#fff",
-        borderRadius: "12px",
-        padding: "40px 48px",
-        maxWidth: "520px",
-        width: "100%",
-        textAlign: "center",
-        boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
-    },
     revokedBanner: {
         display: "flex",
-        alignItems: "flex-start",
         gap: "12px",
-        background: "#fff1f2",
-        border: "1.5px solid #fca5a5",
-        borderRadius: "8px",
+        alignItems: "flex-start",
         padding: "14px 16px",
-        marginBottom: "20px",
-        textAlign: "left",
+        background: "#fef2f2",
+        border: "1px solid #fecaca",
+        borderRadius: 8,
+        marginBottom: "16px",
     },
-    revokedIcon: { fontSize: "24px", flexShrink: 0, marginTop: "2px" },
-    revokedTitle: { fontWeight: 800, fontSize: "14px", color: "#991b1b", margin: "0 0 4px", letterSpacing: "0.03em" },
-    revokedSub: { fontSize: "12px", color: "#b91c1c", margin: 0, lineHeight: 1.5 },
-    icon: { fontSize: "48px" },
-    title: { fontSize: "22px", fontWeight: 700, margin: "16px 0 8px", color: "#111" },
-    label: {
-        fontSize: "12px",
-        color: "#888",
+    revokedDot: {
+        width: 10,
+        height: 10,
+        borderRadius: "50%",
+        background: "#dc2626",
+        flexShrink: 0,
+        marginTop: 4,
+    },
+    revokedTitle: { fontWeight: 700, fontSize: "14px", color: "#991b1b", margin: "0 0 3px" },
+    revokedSub: { fontSize: "13px", color: "#b91c1c", margin: 0, lineHeight: 1.5 },
+    card: {
+        background: "#fff",
+        border: "1px solid #e5e7eb",
+        borderRadius: 10,
+        padding: "24px 28px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "14px",
+    },
+    statusRow: { display: "flex", alignItems: "center", gap: "8px" },
+    statusLabel: { fontSize: "14px", fontWeight: 600, color: "#111" },
+    statusDotActive: {
+        width: 8, height: 8, borderRadius: "50%", background: "#16a34a", flexShrink: 0,
+    },
+    statusDotRevoked: {
+        width: 8, height: 8, borderRadius: "50%", background: "#dc2626", flexShrink: 0,
+    },
+    divider: { height: 1, background: "#f3f4f6" },
+    infoRow: { display: "flex", flexDirection: "column", gap: "3px" },
+    infoKey: {
+        fontSize: "11px",
+        fontWeight: 600,
+        color: token.colorMuted,
         textTransform: "uppercase",
-        letterSpacing: "0.08em",
-        margin: "16px 0 4px",
+        letterSpacing: "0.06em",
     },
-    code: {
-        display: "inline-block",
+    infoVal: {
         fontFamily: "monospace",
-        fontSize: "18px",
+        fontSize: "14px",
+        color: "#111",
+        background: "#f3f4f6",
+        padding: "4px 10px",
+        borderRadius: 5,
+        display: "inline-block",
+        letterSpacing: "0.08em",
         fontWeight: 700,
-        background: "#f0f0f0",
-        padding: "6px 14px",
-        borderRadius: "6px",
-        color: "#333",
-        letterSpacing: "0.12em",
     },
-    divider: { height: "1px", background: "#eee", margin: "24px 0" },
-    link: {
+    pdfLink: {
         display: "inline-block",
-        padding: "12px 28px",
-        background: "#111",
-        color: "#fff",
-        borderRadius: "8px",
-        textDecoration: "none",
+        fontSize: "14px",
         fontWeight: 600,
-        fontSize: "15px",
+        color: "#0EA5E9",
+        textDecoration: "none",
     },
-    linkRevoked: {
+    pdfLinkMuted: {
         display: "inline-block",
-        padding: "12px 28px",
-        background: "#6b7280",
-        color: "#fff",
-        borderRadius: "8px",
-        textDecoration: "none",
+        fontSize: "14px",
         fontWeight: 600,
-        fontSize: "15px",
+        color: token.colorMuted,
+        textDecoration: "none",
     },
-    hint: { marginTop: "16px", fontSize: "13px", color: "#999", lineHeight: 1.5 },
+    pdfNote: { fontSize: "12px", color: token.colorMuted, margin: 0, lineHeight: 1.5 },
 };
