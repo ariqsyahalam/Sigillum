@@ -126,4 +126,33 @@ export class R2StorageService implements StorageService {
 
         return getSignedUrl(client, command, { expiresIn: expiresInSeconds });
     }
+
+    /**
+     * Generate a short-lived presigned PUT URL so the browser can upload a file
+     * directly to R2 — bypassing the Vercel serverless function body size limit.
+     * @param key            R2 object key (e.g. "uploads/temp/ABC123.pdf")
+     * @param expiresInSeconds TTL for the presigned URL (default 300 s = 5 min)
+     */
+    async getSignedUploadUrl(key: string, expiresInSeconds = 300): Promise<string> {
+        const client = getClient();
+        const bucket = getBucket();
+
+        const command = new PutObjectCommand({
+            Bucket: bucket,
+            Key: key,
+            ContentType: "application/pdf",
+        });
+
+        return getSignedUrl(client, command, { expiresIn: expiresInSeconds });
+    }
+
+    /**
+     * Delete an object from R2. Used to clean up temp upload files after processing.
+     */
+    async deleteFile(relativePath: string): Promise<void> {
+        const client = getClient();
+        const bucket = getBucket();
+        const { DeleteObjectCommand } = await import("@aws-sdk/client-s3");
+        await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: relativePath }));
+    }
 }

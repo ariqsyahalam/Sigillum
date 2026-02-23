@@ -41,25 +41,74 @@ export default function UploadPage() {
 
         setStatus("uploading"); setResult(null); setErrMsg("");
 
-        const form = new FormData();
-        form.append("file", file);
+        const authHeader = { Authorization: `Bearer ${tok.trim()}` };
 
         try {
-            const res = await fetch("/api/documents/upload", {
-                method: "POST",
-                headers: { Authorization: `Bearer ${tok.trim()}` },
-                body: form,
-            });
-            const json = await res.json();
+            // ── Step 1: Ask server which upload mode to use ───────────────────
+            const modeRes = await fetch("/api/documents/upload-url", { headers: authHeader });
+            const modeJson = await modeRes.json();
 
-            if (!res.ok || !json.success) {
-                setErrMsg(json.error ?? `HTTP ${res.status}`);
+            if (!modeRes.ok) {
+                setErrMsg(modeJson.error ?? `HTTP ${modeRes.status}`);
                 setStatus("error");
                 return;
             }
 
-            setResult(json);
-            setStatus("done");
+            if (modeJson.mode === "presigned") {
+                // ── R2 mode: PUT directly to R2, then POST /process ───────────
+                const { doc_code, upload_url } = modeJson;
+
+                // Step 2: Upload raw PDF directly to R2 (bypasses Vercel body limit)
+                const putRes = await fetch(upload_url, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/pdf" },
+                    body: file,
+                });
+
+                if (!putRes.ok) {
+                    setErrMsg(`Failed to upload to storage (HTTP ${putRes.status}). Check R2 CORS settings.`);
+                    setStatus("error");
+                    return;
+                }
+
+                // Step 3: Tell server to process the uploaded file (embed QR, hash, record)
+                const processRes = await fetch("/api/documents/process", {
+                    method: "POST",
+                    headers: { ...authHeader, "Content-Type": "application/json" },
+                    body: JSON.stringify({ doc_code }),
+                });
+                const processJson = await processRes.json();
+
+                if (!processRes.ok || !processJson.success) {
+                    setErrMsg(processJson.error ?? `HTTP ${processRes.status}`);
+                    setStatus("error");
+                    return;
+                }
+
+                setResult(processJson);
+                setStatus("done");
+            } else {
+                // ── Local mode: direct multipart POST (original flow) ─────────
+                const form = new FormData();
+                form.append("file", file);
+
+                const res = await fetch("/api/documents/upload", {
+                    method: "POST",
+                    headers: authHeader,
+                    body: form,
+                });
+                const json = await res.json();
+
+                if (!res.ok || !json.success) {
+                    setErrMsg(json.error ?? `HTTP ${res.status}`);
+                    setStatus("error");
+                    return;
+                }
+
+                setResult(json);
+                setStatus("done");
+            }
+
             if (fileRef.current) fileRef.current.value = "";
             setFile(null);
         } catch (e) {
@@ -67,6 +116,7 @@ export default function UploadPage() {
             setStatus("error");
         }
     };
+
 
     return (
         <AppShell title="Upload Document" description="Register a PDF to embed a verification QR code and record its cryptographic hash.">
