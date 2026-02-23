@@ -1,5 +1,5 @@
 /**
- * AppShell — shared layout wrapper for all internal DocuCert pages.
+ * AppShell — shared layout wrapper for all internal Sigillum pages.
  *
  * Provides:
  *   - Sticky top header with product name and optional nav link
@@ -28,7 +28,7 @@ export default function AppShell({ children, title, description, maxWidth = 600,
             {/* ── Header ── */}
             <header style={s.header}>
                 <div style={s.headerInner}>
-                    <Link href="/" style={s.logo}>DocuCert</Link>
+                    <Link href="/" style={s.logo}>SIGILLUM</Link>
                     {!hideNav && (
                         <nav style={s.headerNav}>
                             <Link href="/upload" style={s.navLink}>Upload</Link>

@@ -28,7 +28,7 @@ export default async function VerifyPage({ params }: Props) {
             title="Verification Result"
             description={isRevoked
                 ? "This document has been revoked by the issuer."
-                : "This document is registered in the DocuCert system."}
+                : "This document is registered in the Sigillum system."}
             hideNav
         >
             {/* ── Revocation warning ── */}

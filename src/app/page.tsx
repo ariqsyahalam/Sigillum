@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "DocuCert — Certify Documents Without Enterprise Pricing",
+  title: "Sigillum — Certify Documents Without Enterprise Pricing",
   description:
     "Register signed documents, embed verification QR codes, and prove file integrity with a simple, self-hostable workflow.",
 };
@@ -12,7 +12,7 @@ const steps = [
   {
     n: "01",
     title: "Upload your signed PDF",
-    desc: "Drop in any PDF. DocuCert accepts it via a secure, token-protected endpoint.",
+    desc: "Drop in any PDF. Sigillum accepts it via a secure, token-protected endpoint.",
   },
   {
     n: "02",
@@ -43,7 +43,7 @@ const features = [
 const testimonials = [
   {
     quote:
-      "I needed to prove the file existed at that exact moment before signing the contract. DocuCert handled it in minutes.",
+      "I needed to prove the file existed at that exact moment before signing the contract. Sigillum handled it in minutes.",
     author: "Freelance Designer",
   },
   {
@@ -114,7 +114,7 @@ export default function LandingPage() {
 
         {/* ── Navbar ── */}
         <nav style={s.nav}>
-          <span style={s.navLogo}>DocuCert</span>
+          <span style={s.navLogo}>SIGILLUM</span>
           <div style={s.navLinks}>
             <a href="#how" style={s.navLink}>How it Works</a>
             <a href="#pricing" style={s.navLink}>Pricing</a>
@@ -131,7 +131,7 @@ export default function LandingPage() {
             <span style={s.heroAccent}>Without Enterprise Pricing.</span>
           </h1>
           <p style={s.heroSub}>
-            DocuCert lets you register signed documents, embed verification QR codes, and prove file
+            Sigillum lets you register signed documents, embed verification QR codes, and prove file
             integrity — all with a simple, self-hostable workflow.
           </p>
           <div style={s.heroCtas}>
@@ -256,7 +256,7 @@ export default function LandingPage() {
           <div style={s.sectionInner}>
             <h2 style={{ ...s.h2, color: "#fff" }}>Open Source. Transparent. Yours to run.</h2>
             <p style={{ ...s.heroSub, color: "rgba(255,255,255,0.6)", margin: "0 auto 36px", maxWidth: 540 }}>
-              DocuCert is designed to be simple, auditable, and deployable on your own infrastructure.
+              Sigillum is designed to be simple, auditable, and deployable on your own infrastructure.
               Read the source, fork it, or contribute.
             </p>
             <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={s.btnGithub}>
@@ -269,7 +269,7 @@ export default function LandingPage() {
         <footer style={s.footer}>
           <div style={s.footerInner}>
             <div>
-              <span style={s.footerLogo}>DocuCert</span>
+              <span style={s.footerLogo}>SIGILLUM</span>
               <p style={s.footerTagline}>Simple, verifiable document certification.</p>
             </div>
             <div style={s.footerLinks}>
@@ -279,7 +279,7 @@ export default function LandingPage() {
               <a href="/upload" style={s.footerLink}>Upload</a>
             </div>
           </div>
-          <p style={s.footerCopy}>© 2026 DocuCert. Open source. MIT licensed.</p>
+          <p style={s.footerCopy}>© 2026 Sigillum. Open source. MIT licensed.</p>
         </footer>
       </div>
     </>
