@@ -55,25 +55,48 @@ export async function embedQrIntoPdf(
 
     const qrSize = SIZE_MAP[sizeConf] ?? 80;
 
-    // 1. Generate the QR PNG once — reuse across all pages
+    // A. Detect File Size Mode
+    const fileSizeMB = inputPdfBuffer.length / (1024 * 1024);
+    let largeFileMode = fileSizeMB > 25.0;
+
+    // 1. Generate the QR PNG once
     const qrPngBuffer = await generateQrPng(verificationUrl, qrSize);
 
-    // 2. Load the source PDF into a NEW document (preserves original bytes)
-    const pdfDoc = await PDFDocument.load(inputPdfBuffer);
+    // 2. Load the source PDF
+    const pdfDoc = await PDFDocument.load(inputPdfBuffer, { ignoreEncryption: true });
+
+    // B. Detect Page Count Mode
+    const pages = pdfDoc.getPages();
+    const totalPages = pages.length;
+    let largePageMode = totalPages > 80;
+
+    const stampMode = (largeFileMode || largePageMode) ? "LARGE_SAFE" : "FULL";
+
+    console.log(`[PDF Process] Size: ${fileSizeMB.toFixed(2)} MB`);
+    console.log(`[PDF Process] Pages: ${totalPages}`);
+    console.log(`[PDF Process] Stamp mode: ${stampMode}`);
 
     // 3. Embed the PNG image into the PDF document
     const qrImage = await pdfDoc.embedPng(qrPngBuffer);
 
-    // 4. Stamp QR onto every page
-    const pages = pdfDoc.getPages();
+    // 4. Determine which pages to stamp
+    let pagesToStamp: typeof pages = [];
 
-    for (const page of pages) {
+    if (stampMode === "FULL") {
+        pagesToStamp = pages;
+    } else {
+        // Only stamp first and last page for large PDFs
+        if (totalPages > 0) pagesToStamp.push(pages[0]);
+        if (totalPages > 1) pagesToStamp.push(pages[totalPages - 1]);
+    }
+
+    // Stamp QR onto selected pages
+    for (const page of pagesToStamp) {
         const { width, height } = page.getSize();
 
         let x = 0;
         let y = 0;
 
-        // Calculate X
         if (posConf.includes("left")) {
             x = MARGIN;
         } else if (posConf.includes("right")) {
@@ -82,7 +105,6 @@ export async function embedQrIntoPdf(
             x = (width / 2) - (qrSize / 2);
         }
 
-        // Calculate Y (pdf-lib y=0 is BOTTOM of page)
         if (posConf.includes("bottom")) {
             y = MARGIN;
         } else if (posConf.includes("top")) {
@@ -97,7 +119,7 @@ export async function embedQrIntoPdf(
         });
     }
 
-    // 5. Serialise and return the new PDF — original buffer untouched
-    const outputBytes = await pdfDoc.save();
+    // 5. Serialise and return the new PDF (incremental save / append-only)
+    const outputBytes = await pdfDoc.save({ useObjectStreams: false });
     return Buffer.from(outputBytes);
 }
