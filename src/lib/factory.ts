@@ -11,7 +11,6 @@
  *   STORAGE_MODE=local → LocalStorageService       (default / local dev)
  */
 
-import { SQLiteDocumentRepository } from "@/lib/db/SQLiteDocumentRepository";
 import { LocalStorageService } from "@/lib/storage/LocalStorageService";
 import type { DocumentRepository } from "@/lib/db/DocumentRepository";
 import type { StorageService } from "@/lib/storage/StorageService";
@@ -32,7 +31,11 @@ export function getDocumentRepository(): DocumentRepository {
         return new SupabaseDocumentRepository() as DocumentRepository;
     }
 
-    return new SQLiteDocumentRepository();
+    // Dynamic import guard for SQLite: avoids loading better-sqlite3 native bindings
+    // in Vercel Serverless Functions when DB_MODE=supabase.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { SQLiteDocumentRepository } = require("@/lib/db/SQLiteDocumentRepository");
+    return new SQLiteDocumentRepository() as DocumentRepository;
 }
 
 /**
