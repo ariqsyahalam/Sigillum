@@ -2,12 +2,12 @@
 
 Sigillum is a lightweight document certification system that embeds QR verification into PDFs and stores cryptographic proof of file integrity.
 
-When a PDF is uploaded, Sigillum stamps a unique verification QR code onto every page, computes the SHA-256 hash of the final file, and records both in a database. Anyone who receives the document can scan the QR or visit the verification URL to confirm the file is authentic and unmodified.
+When a PDF is uploaded, Sigillum stamps a unique verification QR code onto every page, computes the BLAKE3 hash of the final file, and records both in a database. Anyone who receives the document can scan the QR or visit the verification URL to confirm the file is authentic and unmodified.
 
 ## Features
 
 - QR code embedded into every page of the uploaded PDF
-- SHA-256 integrity hash stored at upload time
+- BLAKE3 integrity hash stored at upload time
 - Public verification URL per document (`/v/[doc_code]`)
 - File integrity check — upload a copy to confirm it matches the registered version
 - Admin-only upload protected by a bearer token

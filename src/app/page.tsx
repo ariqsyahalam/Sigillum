@@ -21,7 +21,7 @@ const steps = [
   },
   {
     n: "03",
-    title: "SHA-256 hash recorded",
+    title: "BLAKE3 hash recorded",
     desc: "The cryptographic fingerprint of the final file is saved alongside the record.",
   },
   {
@@ -34,7 +34,7 @@ const steps = [
 const features = [
   { icon: "🔒", title: "Immutable Records", desc: "Documents are never overwritten. Every code maps to exactly one file forever." },
   { icon: "📲", title: "QR on Every Page", desc: "Built-in QR code links back to the public verification page for document integrity verification." },
-  { icon: "🔑", title: "SHA-256 Integrity", desc: "Hash of the stamped file is stored. Any modification is immediately detectable." },
+  { icon: "🔑", title: "BLAKE3 Integrity", desc: "Hash of the stamped file is stored. Any modification is immediately detectable." },
   { icon: "🏠", title: "Self-Host Friendly", desc: "Run this self-hosted document certification system on your own machine, VPS, or server." },
   { icon: "🛡️", title: "Token-Gated Upload", desc: "Only authorised holders of the admin token can register new documents." },
   { icon: "🔓", title: "No Vendor Lock-in", desc: "Open codebase, SQLite storage, local filesystem. Your data stays yours." },
@@ -177,7 +177,7 @@ export default function LandingPage() {
           </h1>
           <p style={s.heroSub}>
             Sigillum embeds a QR verification code into every page of your PDF and records its
-            SHA-256 cryptographic fingerprint — giving you tamper-evident proof of authenticity
+            BLAKE3 cryptographic fingerprint — giving you tamper-evident proof of authenticity
             without a subscription, without vendor lock-in, and without a legal procurement process.
           </p>
           <div style={s.heroCtas}>

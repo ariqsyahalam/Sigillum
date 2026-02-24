@@ -8,7 +8,7 @@
  *   A  Reads the raw file from R2 (temp location)
  *   B  Builds the verification URL
  *   C  Embeds QR code onto every page
- *   D  Computes SHA-256 hash of the final PDF
+ *   D  Computes BLAKE3 hash of the final PDF
  *   E  Saves the processed PDF to its permanent R2 location
  *   F  Records the document in the database
  *   G  Deletes the temp file from R2

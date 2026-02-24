@@ -2,7 +2,7 @@
 
 /**
  * VerifyFilePanel — File integrity check section.
- * Client component: uploads a PDF and compares its SHA-256 hash to the stored record.
+ * Client component: uploads a PDF and compares its BLAKE3 hash to the stored record.
  */
 
 import { useState, useRef } from "react";

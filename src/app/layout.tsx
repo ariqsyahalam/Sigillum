@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     "self-hosted document certification",
     "PDF QR verification system",
     "alternative to digital signing platforms",
-    "SHA-256 document proof",
+    "BLAKE3 document proof",
     "open source document registry",
   ],
   authors: [{ name: "Sigillum" }],

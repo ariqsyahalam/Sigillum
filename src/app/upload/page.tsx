@@ -197,7 +197,7 @@ export default function UploadPage() {
                             <code style={s.code}>{result.verify_url}</code>
                         </div>
                         <div style={s.resultRow}>
-                            <span style={s.resultKey}>SHA-256</span>
+                            <span style={s.resultKey}>BLAKE3</span>
                             <code style={{ ...s.code, fontSize: "11px", wordBreak: "break-all" }}>{result.file_hash}</code>
                         </div>
                         <a href={`/v/${result.doc_code}`} target="_blank" rel="noopener noreferrer" style={s.resultLink}>
