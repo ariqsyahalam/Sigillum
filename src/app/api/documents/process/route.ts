@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { doc_code } = body as { doc_code?: string };
+        const { doc_code, qr_size, qr_position } = body as { doc_code?: string; qr_size?: string; qr_position?: string };
 
         if (!doc_code || typeof doc_code !== "string") {
             return err("Missing or invalid field: doc_code.", 400);
@@ -60,7 +60,10 @@ export async function POST(req: NextRequest) {
         const verifyUrl = `${baseUrl}/v/${doc_code}`;
 
         // C — embed QR code onto every page
-        const finalBuffer = await embedQrIntoPdf(rawBuffer, verifyUrl);
+        const finalBuffer = await embedQrIntoPdf(rawBuffer, verifyUrl, {
+            size: (qr_size as any) || "medium",
+            position: (qr_position as any) || "bottom-right",
+        });
 
         // D — SHA-256 hash of the final PDF
         const fileHash = hashBuffer(finalBuffer);

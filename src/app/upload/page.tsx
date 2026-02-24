@@ -23,6 +23,9 @@ export default function UploadPage() {
     const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error">("idle");
     const [result, setResult] = useState<UploadResult | null>(null);
     const [errMsg, setErrMsg] = useState("");
+
+    const [qrSize, setQrSize] = useState("medium");
+    const [qrPosition, setQrPosition] = useState("bottom-right");
     const fileRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -75,7 +78,7 @@ export default function UploadPage() {
                 const processRes = await fetch("/api/documents/process", {
                     method: "POST",
                     headers: { ...authHeader, "Content-Type": "application/json" },
-                    body: JSON.stringify({ doc_code }),
+                    body: JSON.stringify({ doc_code, qr_size: qrSize, qr_position: qrPosition }),
                 });
                 const processJson = await processRes.json();
 
@@ -91,6 +94,8 @@ export default function UploadPage() {
                 // ── Local mode: direct multipart POST (original flow) ─────────
                 const form = new FormData();
                 form.append("file", file);
+                form.append("qr_size", qrSize);
+                form.append("qr_position", qrPosition);
 
                 const res = await fetch("/api/documents/upload", {
                     method: "POST",
@@ -144,6 +149,29 @@ export default function UploadPage() {
                         style={s.textInput}
                         autoComplete="current-password"
                     />
+                </div>
+
+                {/* QR Options Grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <label style={s.label}>QR Size</label>
+                        <select value={qrSize} onChange={e => setQrSize(e.target.value)} style={s.selectInput}>
+                            <option value="small">Small</option>
+                            <option value="medium">Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <label style={s.label}>QR Position</label>
+                        <select value={qrPosition} onChange={e => setQrPosition(e.target.value)} style={s.selectInput}>
+                            <option value="top-left">Top Left</option>
+                            <option value="top-center">Top Center</option>
+                            <option value="top-right">Top Right</option>
+                            <option value="bottom-left">Bottom Left</option>
+                            <option value="bottom-center">Bottom Center</option>
+                            <option value="bottom-right">Bottom Right</option>
+                        </select>
+                    </div>
                 </div>
 
                 <button
@@ -209,6 +237,17 @@ const s: Record<string, React.CSSProperties> = {
         outline: "none",
         fontFamily: "monospace",
         color: "#111",
+    },
+    selectInput: {
+        padding: "9px 12px",
+        fontSize: "14px",
+        border: "1px solid #e5e7eb",
+        borderRadius: 6,
+        outline: "none",
+        fontFamily: token.fontFamily,
+        color: "#111",
+        cursor: "pointer",
+        appearance: "auto"
     },
     errorBox: {
         padding: "12px 16px",

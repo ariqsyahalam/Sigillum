@@ -105,8 +105,10 @@ export async function POST(req: NextRequest) {
         const baseUrl = (process.env.APP_BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
         const verifyUrl = `${baseUrl}/v/${docCode}`;
 
-        // ── D: Embed QR onto every page ───────────────────────────────────────
-        const finalBuffer = await embedQrIntoPdf(inputBuffer, verifyUrl);
+        // ── D: Parse QR Options & Embed onto every page ───────────────────────
+        const qrSize = (formData.get("qr_size") as "small" | "medium" | "large") || "medium";
+        const qrPosition = (formData.get("qr_position") as any) || "bottom-right";
+        const finalBuffer = await embedQrIntoPdf(inputBuffer, verifyUrl, { size: qrSize, position: qrPosition });
 
         // ── E: Hash the FINAL (post-QR) PDF ──────────────────────────────────
         const fileHash = hashBuffer(finalBuffer);
