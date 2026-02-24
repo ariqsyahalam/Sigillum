@@ -1,4 +1,3 @@
-import { createHash } from "blake3";
 import { Readable } from "stream";
 
 /**
@@ -10,7 +9,10 @@ import { Readable } from "stream";
  * @returns Hex string of the BLAKE3 hash
  */
 export async function hashFileStream(stream: Readable): Promise<string> {
-    const hasher = createHash();
+    // Dynamic require referencing the CJS build directly, evading Next.js Turbopack 
+    // ESM strict module resolution errors on the blake3 wrapper.
+    const blakeModule = require("blake3/dist/index.js");
+    const hasher = blakeModule.createHash();
 
     for await (const chunk of stream) {
         hasher.update(chunk);

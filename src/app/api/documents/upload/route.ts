@@ -25,7 +25,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { embedQrIntoPdf } from "@/lib/pdf/embedQrIntoPdf";
-import { hashBuffer } from "@/lib/hash/sha256";
+import { hashFileStream } from "@/lib/hash/fileHash";
 import { getDocumentRepository, getStorageService } from "@/lib/factory";
 import { generateDocCode } from "@/lib/utils/generateDocCode";
 import { checkRateLimit, getClientIp } from "@/lib/utils/rateLimiter";
@@ -110,8 +110,10 @@ export async function POST(req: NextRequest) {
         const qrPosition = (formData.get("qr_position") as any) || "bottom-right";
         const finalBuffer = await embedQrIntoPdf(inputBuffer, verifyUrl, { size: qrSize, position: qrPosition });
 
-        // ── E: Hash the FINAL (post-QR) PDF ──────────────────────────────────
-        const fileHash = hashBuffer(finalBuffer);
+        // ── E: Hash the FINAL (post-QR) PDF (using BLAKE3 stream) ────────────
+        const { Readable } = require("stream");
+        const fileStream = Readable.from(finalBuffer);
+        const fileHash = await hashFileStream(fileStream);
 
         // ── [8] Prevent overwrite ─────────────────────────────────────────────
         const storage = getStorageService();
