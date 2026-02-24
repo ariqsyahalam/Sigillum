@@ -10,7 +10,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getDocumentRepository } from "@/lib/factory";
-import { hashBuffer } from "@/lib/hash/sha256";
+import { hashFileStream } from "@/lib/hash/fileHash";
+import { Readable } from "stream";
 
 const secHeaders = {
     "X-Content-Type-Options": "nosniff",
@@ -52,10 +53,11 @@ export async function POST(req: NextRequest) {
             return err("Stored document has no hash on record. Cannot verify.", 422);
         }
 
-        // ── Hash the uploaded file as-is (no QR, no modification) ────────────
+        // ── Hash the uploaded file (BLAKE3 Stream) ────────────
         const arrayBuffer = await file.arrayBuffer();
         const uploadedBuffer = Buffer.from(arrayBuffer);
-        const uploadedHash = hashBuffer(uploadedBuffer);
+        const fileStream = Readable.from(uploadedBuffer);
+        const uploadedHash = await hashFileStream(fileStream);
 
         // ── Compare ───────────────────────────────────────────────────────────
         const match = uploadedHash === record.file_hash;

@@ -19,8 +19,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { embedQrIntoPdf } from "@/lib/pdf/embedQrIntoPdf";
-import { hashBuffer } from "@/lib/hash/sha256";
+import { hashFileStream } from "@/lib/hash/fileHash";
 import { getDocumentRepository, getStorageService } from "@/lib/factory";
+import { Readable } from "stream";
 
 const secHeaders = {
     "X-Content-Type-Options": "nosniff",
@@ -65,8 +66,9 @@ export async function POST(req: NextRequest) {
             position: (qr_position as any) || "bottom-right",
         });
 
-        // D — SHA-256 hash of the final PDF
-        const fileHash = hashBuffer(finalBuffer);
+        // D — BLAKE3 hash of the final PDF (streamed to avoid large memory spikes in hashing layer)
+        const fileStream = Readable.from(finalBuffer);
+        const fileHash = await hashFileStream(fileStream);
 
         // E — save to permanent R2 location
         const targetPath = `documents/${doc_code}.pdf`;
